@@ -2,6 +2,7 @@ require 'hako'
 require 'hako/error'
 require 'hako/script'
 require 'net/http'
+require 'uri'
 
 module Hako
   module Scripts
@@ -28,31 +29,30 @@ module Hako
         @options['endpoint']
       end
 
+      # @return [URI]
+      def endpoint_uri
+        @uri ||= URI.parse(endpoint)
+      end
+
       # @return [String]
-      def endpoint_proto
-        proto = endpoint.fetch('proto')
-        raise Error.new("Switch hitter proto must be http or https") unless %w/http https/.include?(proto)
-        proto
+      def endpoint_scheme
+        raise Error.new("Switch hitter endpoint scheme must be http or https") unless %w/http https/.include?(endpoint_uri.scheme)
+        endpoint_uri.scheme
       end
 
       # @return [String]
       def endpoint_host
-        endpoint.fetch('host')
-      end
-
-      # @return [Fixnum]
-      def wellknown_port
-        endpoint_proto == 'https' ? 443 : 80
+        endpoint_uri.host
       end
 
       # @return [Fixnum]
       def endpoint_port
-        endpoint.fetch('port', wellknown_port)
+        endpoint_uri.port
       end
 
       # @return [String]
       def endpoint_path
-        endpoint.fetch('path')
+        endpoint_uri.path
       end
 
       # @return [Net::HTTP]
@@ -60,32 +60,25 @@ module Hako
         Net::HTTP.new(host, port)
       end
 
-      # @return [String]
-      def url
-        "#{endpoint_proto}://#{endpoint_host}:#{endpoint_port}#{endpoint_path}"
-      end
-
       # @return [nil]
       def hit_switch
-        net_http = http(endpoint_host, endpoint_port)
+        Hako.logger.info("Switch endpoint #{endpoint}")
 
-        Hako.logger.info("Switch endpoint #{url}")
-        if endpoint_proto == 'HTTPS'
-          net_http.use_ssl = true
-        end
+        net_http = http(endpoint_host, endpoint_port)
+        net_http.use_ssl = endpoint_scheme == 'https'
 
         if @dry_run
-          Hako.logger.info("Switch hitter will request #{url} [dry-run]")
+          Hako.logger.info("Switch hitter will request #{endpoint} [dry-run]")
           return
         end
 
         net_http.start do
-          req = Net::HTTP::Get.new(endpoint_path)
+          req = Net::HTTP::Get.new(endpoint_uri.request_uri)
           res = net_http.request(req)
           unless res.code == '200'
             raise Error.new("Switch hitter HTTP Error: #{res.code}: #{res.body}")
           end
-          Hako.logger.info("Enabled #{endpoint_path} at #{res.body}")
+          Hako.logger.info("Enabled #{endpoint} at #{res.body}")
         end
       end
     end

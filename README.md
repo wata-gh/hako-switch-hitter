@@ -23,21 +23,8 @@ Or install it yourself as:
 ```yaml
 scripts:
   - type: switch_hitter
-    endpoint:
-      proto: http
-      host: example.com
-      port: 10080
-      path: /switch_endpoint
+    endpoint: https://example.com/switch_endpoint
 ```
-
-config | detail | required
---- | --- | ---
-proto | http or https | true
-host | example.com | true
-port | 80 | false
-path | /switch_endpoint | true
-
-If `port` is not configured, hako-switch-hitter will 80 for http and 443 for https.
 
 ## Development
 
