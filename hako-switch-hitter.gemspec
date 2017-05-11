@@ -4,7 +4,7 @@ $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 
 Gem::Specification.new do |spec|
   spec.name          = 'hako-switch-hitter'
-  spec.version       = '0.1.0'
+  spec.version       = '0.1.1'
   spec.authors       = ['wata']
   spec.email         = ['wata.gm@gmail.com']
 
