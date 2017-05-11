@@ -30,7 +30,9 @@ module Hako
 
       # @return [String]
       def endpoint_proto
-        endpoint.fetch('proto')
+        proto = endpoint.fetch('proto')
+        raise Error.new("Switch hitter proto must be http or https") unless %w/http https/.include?(proto)
+        proto
       end
 
       # @return [String]
@@ -39,8 +41,13 @@ module Hako
       end
 
       # @return [Fixnum]
+      def wellknown_port
+        endpoint_proto == 'https' ? 443 : 80
+      end
+
+      # @return [Fixnum]
       def endpoint_port
-        endpoint.fetch('port')
+        endpoint.fetch('port', wellknown_port)
       end
 
       # @return [String]
@@ -53,17 +60,22 @@ module Hako
         Net::HTTP.new(host, port)
       end
 
+      # @return [String]
+      def url
+        "#{endpoint_proto}://#{endpoint_host}:#{endpoint_port}#{endpoint_path}"
+      end
+
       # @return [nil]
       def hit_switch
         net_http = http(endpoint_host, endpoint_port)
 
-        Hako.logger.info("Switch endpoint #{endpoint_proto}://#{endpoint_host}:#{endpoint_port}#{endpoint_path}")
+        Hako.logger.info("Switch endpoint #{url}")
         if endpoint_proto == 'HTTPS'
           net_http.use_ssl = true
         end
 
         if @dry_run
-          Hako.logger.info("Switch hitter will request #{endpoint_proto}://#{endpoint_host}:#{endpoint_port}#{endpoint_path} [dry-run]")
+          Hako.logger.info("Switch hitter will request #{url} [dry-run]")
           return
         end
 

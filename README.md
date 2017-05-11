@@ -32,12 +32,12 @@ scripts:
 
 config | detail | required
 --- | --- | ---
-proto | http or https | false
-host | example.com | false
+proto | http or https | true
+host | example.com | true
 port | 80 | false
 path | /switch_endpoint | true
 
-If `proto`, `host`, `port` is not configured, hako-switch-hitter will use ELB v2 address.
+If `port` is not configured, hako-switch-hitter will 80 for http and 443 for https.
 
 ## Development
 

@@ -29,8 +29,26 @@ RSpec.describe Hako::Scripts::SwitchHitter do
   end
 
   describe '#deploy_finished' do
+    context 'invalid protocol' do
+      let(:options) do
+        {
+          'type' => 'switch_hitter',
+          'endpoint' => {
+            'proto' => 'ftp',
+            'host' => 'example.com',
+            'port' => 80,
+            'path' => '/switch_path',
+          }
+        }
+      end
+
+      it 'should hit switch endpoint' do
+        expect { script.deploy_finished(containers) }.to raise_error(Hako::Error)
+      end
+    end
+
     context 'http' do
-      context 'default enable path' do
+      context 'with port' do
         let(:options) do
           {
             'type' => 'switch_hitter',
@@ -45,6 +63,25 @@ RSpec.describe Hako::Scripts::SwitchHitter do
 
         it 'should hit switch endpoint' do
           script.deploy_finished(containers)
+          expect(script.send(:url)).to eq('http://example.com:80/switch_path')
+        end
+      end
+
+      context 'without port' do
+        let(:options) do
+          {
+            'type' => 'switch_hitter',
+            'endpoint' => {
+              'proto' => 'http',
+              'host' => 'example.com',
+              'path' => '/switch_path',
+            }
+          }
+        end
+
+        it 'should hit switch endpoint' do
+          script.deploy_finished(containers)
+          expect(script.send(:url)).to eq('http://example.com:80/switch_path')
         end
       end
 
@@ -73,20 +110,41 @@ RSpec.describe Hako::Scripts::SwitchHitter do
     end
 
     context 'https' do
-      let(:options) do
-        {
-          'type' => 'switch_hitter',
-          'endpoint' => {
-            'proto' => 'https',
-            'host' => 'example.com',
-            'port' => 443,
-            'path' => '/switch_path',
+      context 'with port' do
+        let(:options) do
+          {
+            'type' => 'switch_hitter',
+            'endpoint' => {
+              'proto' => 'https',
+              'host' => 'example.com',
+              'port' => 443,
+              'path' => '/switch_path',
+            }
           }
-        }
+        end
+
+        it 'should hit switch endpoint' do
+          script.deploy_finished(containers)
+          expect(script.send(:url)).to eq('https://example.com:443/switch_path')
+        end
       end
 
-      it 'should hit switch endpoint' do
-        expect { script.deploy_finished(containers) }.not_to raise_error
+      context 'witout port' do
+        let(:options) do
+          {
+            'type' => 'switch_hitter',
+            'endpoint' => {
+              'proto' => 'https',
+              'host' => 'example.com',
+              'path' => '/switch_path',
+            }
+          }
+        end
+
+        it 'should hit switch endpoint' do
+          script.deploy_finished(containers)
+          expect(script.send(:url)).to eq('https://example.com:443/switch_path')
+        end
       end
     end
   end
