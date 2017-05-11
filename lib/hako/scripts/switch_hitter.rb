@@ -25,18 +25,18 @@ module Hako
 
       # @return [Hash]
       def endpoint
-        raise Error.new("Switch hitter endpoint is not configured") unless @options[:endpoint]
-        @options[:endpoint]
+        raise Error.new("Switch hitter endpoint is not configured") unless @options['endpoint']
+        @options['endpoint']
       end
 
       # @return [String]
       def endpoint_proto
-        endpoint[:proto] || protocol
+        endpoint['proto'] || protocol
       end
 
       # @return [String]
       def endpoint_host
-        return endpoint[:host] if endpoint[:host]
+        return endpoint['host'] if endpoint['host']
 
         load_balancer = describe_load_balancer
         load_balancer.dns_name
@@ -44,13 +44,13 @@ module Hako
 
       # @return [Fixnum]
       def endpoint_port
-        endpoint[:port] || port
+        endpoint['port'] || port
       end
 
       # @return [String]
       def endpoint_path
-        raise Error.new("Switch hitter path is not configured") unless endpoint[:path]
-        endpoint[:path]
+        raise Error.new("Switch hitter path is not configured") unless endpoint['path']
+        endpoint['path']
       end
 
       # @return [Net::HTTP]
@@ -68,6 +68,11 @@ module Hako
           net_http.verify_mode = OpenSSL::SSL::VERIFY_NONE
         end
 
+        if @dry_run
+          Hako.logger.info("Switch hitter will request #{endpoint_proto.downcase}://#{endpoint_host}:#{endpoint_port}#{endpoint_path} [dry-run]")
+          return
+        end
+
         net_http.start do
           req = Net::HTTP::Get.new(endpoint_path)
           res = net_http.request(req)
@@ -80,17 +85,17 @@ module Hako
 
       # @return [String]
       def region
-        @app.yaml.fetch(:scheduler).fetch(:region)
+        @app.yaml.fetch('scheduler').fetch('region')
       end
 
       # @return [Fixnum]
       def port
-        @app.yaml.fetch(:scheduler).fetch(:elb_v2).fetch(:listeners)[0].port
+        @app.yaml.fetch('scheduler').fetch('elb_v2').fetch('listeners')[0].fetch('port')
       end
 
       # @return [String]
       def protocol
-        @app.yaml.fetch(:scheduler).fetch(:elb_v2).fetch(:listeners)[0].protocol
+        @app.yaml.fetch('scheduler').fetch('elb_v2').fetch('listeners')[0].fetch('protocol')
       end
 
       # @return [Aws::ElasticLoadBalancingV2::Client]
