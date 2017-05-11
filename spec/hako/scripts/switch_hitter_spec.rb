@@ -12,24 +12,24 @@ RSpec.describe Hako::Scripts::SwitchHitter do
       'Hako::Application',
       id: 'nanika',
       yaml: {
-        scheduler: {
-          elb_v2: {
-            listeners: listeners
+        'scheduler' => {
+          'elb_v2' => {
+            'listeners' => listeners
           }
         },
-        region: 'ap-northeast-1'
+        'region' => 'ap-northeast-1'
       }
     )
   }
   let(:options) do
     {
-      type: 'switch_hitter',
+      'type' => 'switch_hitter',
     }
   end
   let(:listeners) do
     [
-      double(port: 80, protocol: 'HTTP'),
-      double(port: 443, protocol: 'HTTPS'),
+      { 'port' => 80, 'protocol' => 'HTTP' },
+      { 'port' => 443, 'protocol' => 'HTTPS' },
     ]
   end
   let(:app_container) { Hako::AppContainer.new(app, options, dry_run: false) }
@@ -56,9 +56,9 @@ RSpec.describe Hako::Scripts::SwitchHitter do
       context 'default enable path' do
         let(:options) do
           {
-            type: 'switch_hitter',
-            endpoint: {
-              path: '/switch_path',
+            'type' => 'switch_hitter',
+            'endpoint' => {
+              'path' => '/switch_path',
             }
           }
         end
@@ -72,9 +72,9 @@ RSpec.describe Hako::Scripts::SwitchHitter do
       context 'switch return 404' do
         let(:options) do
           {
-            type: 'switch_hitter',
-            endpoint: {
-              path: '/switch_path',
+            'type' => 'switch_hitter',
+            'endpoint' => {
+              'path' => '/switch_path',
             }
           }
         end
@@ -93,12 +93,12 @@ RSpec.describe Hako::Scripts::SwitchHitter do
       context 'custom enable path' do
         let(:options) do
           {
-            type: 'switch_hitter',
-            endpoint: {
-              proto: 'http',
-              host: 'example.com',
-              port: 10080,
-              path: '/custom_path',
+            'type' => 'switch_hitter',
+            'endpoint' => {
+              'proto' => 'http',
+              'host' => 'example.com',
+              'port' => 10080,
+              'path' => '/custom_path',
             }
           }
         end
@@ -117,16 +117,16 @@ RSpec.describe Hako::Scripts::SwitchHitter do
     context 'https' do
       let(:options) do
         {
-          type: 'switch_hitter',
-          endpoint: {
-            path: '/switch_path',
+          'type' => 'switch_hitter',
+          'endpoint' => {
+            'path' => '/switch_path',
           }
         }
       end
 
       let(:listeners) do
         [
-          double(port: 443, protocol: 'HTTPS')
+          { 'port' => 443, 'protocol' => 'HTTPS' }
         ]
       end
 
