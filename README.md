@@ -1,4 +1,6 @@
-# Hako::Switch::Hitter
+# Hako::SwitchHitter
+
+[![Build Status](https://travis-ci.org/wata-gh/hako-switch-hitter.svg)](https://travis-ci.org/wata-gh/hako-switch-hitter)
 
 Hit endpoint at [hako](https://github.com/eagletmt/hako) script deploy_finished.
 
