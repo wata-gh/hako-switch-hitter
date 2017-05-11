@@ -33,16 +33,11 @@ RSpec.describe Hako::Scripts::SwitchHitter do
       let(:options) do
         {
           'type' => 'switch_hitter',
-          'endpoint' => {
-            'proto' => 'ftp',
-            'host' => 'example.com',
-            'port' => 80,
-            'path' => '/switch_path',
-          }
+          'endpoint' => 'ftp://example.com/switch_path',
         }
       end
 
-      it 'should hit switch endpoint' do
+      it 'should raise Hako::Error' do
         expect { script.deploy_finished(containers) }.to raise_error(Hako::Error)
       end
     end
@@ -52,36 +47,12 @@ RSpec.describe Hako::Scripts::SwitchHitter do
         let(:options) do
           {
             'type' => 'switch_hitter',
-            'endpoint' => {
-              'proto' => 'http',
-              'host' => 'example.com',
-              'port' => 80,
-              'path' => '/switch_path',
-            }
+            'endpoint' => 'http://example.com:10080/switch_path?hoge=1',
           }
         end
 
         it 'should hit switch endpoint' do
           script.deploy_finished(containers)
-          expect(script.send(:url)).to eq('http://example.com:80/switch_path')
-        end
-      end
-
-      context 'without port' do
-        let(:options) do
-          {
-            'type' => 'switch_hitter',
-            'endpoint' => {
-              'proto' => 'http',
-              'host' => 'example.com',
-              'path' => '/switch_path',
-            }
-          }
-        end
-
-        it 'should hit switch endpoint' do
-          script.deploy_finished(containers)
-          expect(script.send(:url)).to eq('http://example.com:80/switch_path')
         end
       end
 
@@ -89,12 +60,7 @@ RSpec.describe Hako::Scripts::SwitchHitter do
         let(:options) do
           {
             'type' => 'switch_hitter',
-            'endpoint' => {
-              'proto' => 'http',
-              'host' => 'example.com',
-              'port' => 80,
-              'path' => '/switch_path',
-            }
+            'endpoint' => 'http://example.com/switch_path',
           }
         end
 
@@ -114,18 +80,12 @@ RSpec.describe Hako::Scripts::SwitchHitter do
         let(:options) do
           {
             'type' => 'switch_hitter',
-            'endpoint' => {
-              'proto' => 'https',
-              'host' => 'example.com',
-              'port' => 443,
-              'path' => '/switch_path',
-            }
+            'endpoint' => 'https://example.com:443/switch_path',
           }
         end
 
         it 'should hit switch endpoint' do
           script.deploy_finished(containers)
-          expect(script.send(:url)).to eq('https://example.com:443/switch_path')
         end
       end
 
@@ -133,17 +93,12 @@ RSpec.describe Hako::Scripts::SwitchHitter do
         let(:options) do
           {
             'type' => 'switch_hitter',
-            'endpoint' => {
-              'proto' => 'https',
-              'host' => 'example.com',
-              'path' => '/switch_path',
-            }
+            'endpoint' => 'https://example.com/switch_path',
           }
         end
 
         it 'should hit switch endpoint' do
           script.deploy_finished(containers)
-          expect(script.send(:url)).to eq('https://example.com:443/switch_path')
         end
       end
     end
