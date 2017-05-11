@@ -1,4 +1,3 @@
-require 'aws-sdk'
 require 'hako'
 require 'hako/error'
 require 'hako/script'
@@ -31,26 +30,29 @@ module Hako
 
       # @return [String]
       def endpoint_proto
-        endpoint['proto'] || protocol
+        proto = endpoint.fetch('proto')
+        raise Error.new("Switch hitter proto must be http or https") unless %w/http https/.include?(proto)
+        proto
       end
 
       # @return [String]
       def endpoint_host
-        return endpoint['host'] if endpoint['host']
+        endpoint.fetch('host')
+      end
 
-        load_balancer = describe_load_balancer
-        load_balancer.dns_name
+      # @return [Fixnum]
+      def wellknown_port
+        endpoint_proto == 'https' ? 443 : 80
       end
 
       # @return [Fixnum]
       def endpoint_port
-        endpoint['port'] || port
+        endpoint.fetch('port', wellknown_port)
       end
 
       # @return [String]
       def endpoint_path
-        raise Error.new("Switch hitter path is not configured") unless endpoint['path']
-        endpoint['path']
+        endpoint.fetch('path')
       end
 
       # @return [Net::HTTP]
@@ -58,18 +60,22 @@ module Hako
         Net::HTTP.new(host, port)
       end
 
+      # @return [String]
+      def url
+        "#{endpoint_proto}://#{endpoint_host}:#{endpoint_port}#{endpoint_path}"
+      end
+
       # @return [nil]
       def hit_switch
         net_http = http(endpoint_host, endpoint_port)
 
-        Hako.logger.info("Switch endpoint #{endpoint_proto.downcase}://#{endpoint_host}:#{endpoint_port}#{endpoint_path}")
-        if endpoint_proto.upcase == 'HTTPS'
+        Hako.logger.info("Switch endpoint #{url}")
+        if endpoint_proto == 'HTTPS'
           net_http.use_ssl = true
-          net_http.verify_mode = OpenSSL::SSL::VERIFY_NONE
         end
 
         if @dry_run
-          Hako.logger.info("Switch hitter will request #{endpoint_proto.downcase}://#{endpoint_host}:#{endpoint_port}#{endpoint_path} [dry-run]")
+          Hako.logger.info("Switch hitter will request #{url} [dry-run]")
           return
         end
 
@@ -81,43 +87,6 @@ module Hako
           end
           Hako.logger.info("Enabled #{endpoint_path} at #{res.body}")
         end
-      end
-
-      # @return [String]
-      def region
-        @app.yaml.fetch('scheduler').fetch('region')
-      end
-
-      # @return [Fixnum]
-      def port
-        @app.yaml.fetch('scheduler').fetch('elb_v2').fetch('listeners')[0].fetch('port')
-      end
-
-      # @return [String]
-      def protocol
-        @app.yaml.fetch('scheduler').fetch('elb_v2').fetch('listeners')[0].fetch('protocol')
-      end
-
-      # @return [Aws::ElasticLoadBalancingV2::Client]
-      def elb_v2
-        @elb_v2 ||= Aws::ElasticLoadBalancingV2::Client.new(region: region)
-      end
-
-      # @return [Aws::ElasticLoadBalancingV2::Types::Listener]
-      def describe_listener(load_balancer_arn)
-        elb_v2.describe_listeners(load_balancer_arn: load_balancer_arn).listeners[0]
-      end
-
-      # @return [Aws::ElasticLoadBalancingV2::Types::LoadBalancer]
-      def describe_load_balancer
-        elb_v2.describe_load_balancers(names: [name]).load_balancers[0]
-      rescue Aws::ElasticLoadBalancingV2::Errors::LoadBalancerNotFound
-        nil
-      end
-
-      # @return [String]
-      def name
-        "hako-#{@app.id}"
       end
     end
   end
